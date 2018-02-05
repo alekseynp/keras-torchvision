@@ -2,7 +2,7 @@
 
 Convert the pretrained Resnet18 from Pytorch's torchvision module for use in Keras with the Tensorflow backend.
 
-Divided into two scripts, using numpy files as an interchange medium. This makes it possible to have Pytorch and Tensorflow in two different repositories.
+Divided into two scripts, using numpy files as an interchange medium. This makes it possible to have Pytorch and Tensorflow in two different environments.
 
 Converts with anal attention to detail, matching activations at each layer. Picky about how 'same' padding is implemented.
 
