@@ -123,6 +123,45 @@ class BasicBlock:
         return out
 
 
+class Bottleneck:
+    expansion = 4
+
+    def __init__(self, planes, stride=1, downsample=None):
+        self.conv1 = conv2d_like_pytorch(planes, 1, use_bias=False)
+        self.bn1 = batch_norm_2d_like_pytorch()
+        self.relu1 = Activation('relu')
+        self.conv2 = conv2d_like_pytorch(planes, 3, strides=stride, use_bias=False)
+        self.bn2 = batch_norm_2d_like_pytorch()
+        self.relu2 = Activation('relu')
+        self.conv3 = conv2d_like_pytorch(planes * 4, 1, use_bias=False)
+        self.bn3 = batch_norm_2d_like_pytorch()
+        self.relu3 = Activation('relu')
+        self.downsample = downsample
+        self.stride = stride
+
+    def __call__(self, x):
+        residual = x
+
+        out = self.conv1(x)
+        out = self.bn1(out)
+        out = self.relu1(out)
+
+        out = self.conv2(out)
+        out = self.bn2(out)
+        out = self.relu2(out)
+
+        out = self.conv3(out)
+        out = self.bn3(out)
+
+        if self.downsample is not None:
+            residual = self.downsample(x)
+
+        out = add([out, residual])
+        out = self.relu3(out)
+
+        return out
+
+
 class ResNet:
     def __init__(self, block, layers, num_classes=1000):
         self.inplanes = 64
@@ -181,4 +220,19 @@ def resnet18(**kwargs):
 
 def resnet34(**kwargs):
     model = ResNet(BasicBlock, [3, 4, 6, 3], **kwargs)
+    return model.build((224, 224, 3))
+
+
+def resnet50(**kwargs):
+    model = ResNet(Bottleneck, [3, 4, 6, 3], **kwargs)
+    return model.build((224, 224, 3))
+
+
+def resnet101(**kwargs):
+    model = ResNet(Bottleneck, [3, 4, 23, 3], **kwargs)
+    return model.build((224, 224, 3))
+
+
+def resnet152(**kwargs):
+    model = ResNet(Bottleneck, [3, 8, 36, 3], **kwargs)
     return model.build((224, 224, 3))
